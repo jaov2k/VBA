@@ -46,16 +46,4 @@ Sub InsertBlocks(ByVal qty As Integer, ByVal insertionPnt As Variant)
         Next
         insertionPnt(0) = insertionPnt(0) + horzOffset  '(0) is X coord, (1) is Y coord, (2) is Z coord
     Next
-    
-    'Draws the exterior border around all the blocks
-    'MakeBorder
-End Sub
-
-Sub MakeBorder(ByVal qty As Integer, ByVal insertionPnt As Variant)
-    Dim borderOffset As Integer: borderOffset = 2
-    
-    '(0) is X coord, (1) is Y coord, (2) is Z coord
-    insertionPnt(0) = insertionPnt(0) - borderOffset
-    insertionPnt(1) = insertionPnt(1) - borderOffset
-    
 End Sub
