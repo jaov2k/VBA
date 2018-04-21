@@ -1,3 +1,12 @@
+'Jose Ortiz
+'2018-04-21
+'Title:         Elevation Section Generator
+'Description:   Module intended to create duplicates of an existing block
+'               used for elevation sections in shop drawings,
+'               But can be modified to suit. Not as complicated as using the
+'               the AutoCAD array tool, and can function with block attributes.
+'https://github.com/jaov2k/VBA-AutoCAD/blob/master/sourceCode/genElevations.txt
+
 Option Explicit
 
 'Main module function; this is what gets called by the application
