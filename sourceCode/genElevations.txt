@@ -1,0 +1,61 @@
+Option Explicit
+
+'Main module function; this is what gets called by the application
+Sub genElevations()
+    InsertBlocks GetQty, GetInsertionPoint
+    
+    'Grats if you see this in the command line
+    ThisDrawing.Utility.Prompt "Blocks created successfully..."
+End Sub
+
+'Prompts a user for a 3 vertice-point by either typing or clicking in model space.
+Function GetInsertionPoint()
+    GetInsertionPoint = ThisDrawing.Utility.GetPoint(, vbCrLf & "Specify insertion point: ")
+End Function
+
+'Prompts a user for a quantity in whole interger values such as 1, 45, 432
+Function GetQty()
+    GetQty = ThisDrawing.Utility.GetInteger(vbCrLf & "Enter number of instances: ")
+End Function
+
+Sub InsertBlocks(ByVal qty As Integer, ByVal insertionPnt As Variant)
+'/////////////////////////////////////////////////////////////////////
+'SET INPUTS HERE:                                                   '/
+'blockName      - Name of the block you're inserting                '/
+'horzOffset     - Horizontal offset of the insertions               '/
+'strAttribute   - Name of the block attribute you're setting        '/
+                                                                    '/
+    Dim blockName As String:    blockName = "MISC-ELEVATION-PANEL"  '/
+    Dim horzOffset As Double:   horzOffset = 100#   'in millimeters '/
+    Dim strAttribute As String: strAttribute = "PANEL-NO"           '/
+'/////////////////////////////////////////////////////////////////////
+    
+    'This is where each panel gets inserted into the drawing
+    Dim blockRefObj As AcadBlockReference   'holds the actual block in memory
+    Dim varAttributes As Variant            'place to store the attribute list of the block
+    Dim counterInsert As Integer            'counter for the number of instances beng inserted of the block
+    Dim counterAttribs As Integer           'counter for cycling through the block attributes of the block
+    
+    For counterInsert = 1 To qty
+        Set blockRefObj = ThisDrawing.ModelSpace.InsertBlock(insertionPnt, blockName, 1#, 1#, 1#, 0)
+        varAttributes = blockRefObj.GetAttributes
+        For counterAttribs = LBound(varAttributes) To UBound(varAttributes)
+            If varAttributes(counterAttribs).TagString = strAttribute Then
+                varAttributes(counterAttribs).TextString = CStr(counterInsert)
+            End If
+        Next
+        insertionPnt(0) = insertionPnt(0) + horzOffset  '(0) is X coord, (1) is Y coord, (2) is Z coord
+    Next
+    
+    'Draws the exterior border around all the blocks
+    'MakeBorder
+End Sub
+
+Sub MakeBorder(ByVal qty As Integer, ByVal insertionPnt As Variant)
+    Dim borderOffset As Integer: borderOffset = 2
+    
+    '(0) is X coord, (1) is Y coord, (2) is Z coord
+    insertionPnt(0) = insertionPnt(0) - borderOffset
+    insertionPnt(1) = insertionPnt(1) - borderOffset
+    
+End Sub
