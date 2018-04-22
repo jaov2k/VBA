@@ -22,9 +22,19 @@ Function GetInsertionPoint()
     GetInsertionPoint = ThisDrawing.Utility.GetPoint(, vbCrLf & "Specify insertion point: ")
 End Function
 
-'Prompts a user for a quantity in whole interger values such as 1, 45, 432
+'Prompts a user for a quantity in positive numbers such as 1, 45, 432
 Function GetQty()
-    GetQty = ThisDrawing.Utility.GetInteger(vbCrLf & "Enter number of instances: ")
+    Dim qty As Integer
+    qty = ThisDrawing.Utility.GetInteger(vbCrLf & "Enter number of instances: ")
+        If qty >= 1 Then
+            GetQty = qty
+        Else
+            While qty <= 0
+                ThisDrawing.Utility.Prompt (vbCrLf & "Requires a number greater than 0...")
+                qty = ThisDrawing.Utility.GetInteger(vbCrLf & "Enter number of instances: ")
+            Wend
+            GetQty = qty
+        End If
 End Function
 
 Sub InsertBlocks(ByVal qty As Integer, ByVal insertionPnt As Variant)
