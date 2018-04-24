@@ -11,20 +11,47 @@ Option Explicit
 
 'Main module function; this is what gets called by the application
 Sub genElevations()
+    'On Error Resume Next
     InsertBlocks GetQty, GetInsertionPoint
-    
-    'Grats if you see this in the command line
-    ThisDrawing.Utility.Prompt "Blocks created successfully..."
 End Sub
 
-'Prompts a user for a 3 vertice-point by either typing or clicking in model space.
-Function GetInsertionPoint()
-    GetInsertionPoint = ThisDrawing.Utility.GetPoint(, vbCrLf & "Specify insertion point: ")
-End Function
+Sub InsertBlocks(ByVal qty As Double, ByVal insertionPnt As Variant)
+'/////////////////////////////////////////////////////////////////////
+'SET INPUTS HERE:                                                   '/
+'blockName      - Name of the block you're inserting                '/
+'horzOffset     - Horizontal offset of the insertions               '/
+'strAttribute   - Name of the block attribute you're setting        '/
+                                                                    '/
+    Dim blockName As String:    blockName = "MISC-ELEVATION-PANEL"  '/
+    Dim horzOffset As Double:   horzOffset = 100#   'in millimeters '/
+    Dim strAttribute As String: strAttribute = "PANEL-NO"           '/
+'/////////////////////////////////////////////////////////////////////
+    
+    'Draw the border before the inserting the blocks
+    drawBorder qty, insertionPnt
+    sectionLines qty, insertionPnt
+    
+    'This is where each block gets inserted into the drawing
+    Dim blockRefObj As AcadBlockReference   'holds the actual block in memory
+    Dim varAttributes As Variant            'place to store the attribute list of the block
+    Dim counterInsert As Integer            'counter for the number of instances beng inserted of the block
+    Dim counterAttribs As Integer           'counter for cycling through the block attributes of the block
+        
+    For counterInsert = 1 To qty
+        Set blockRefObj = ThisDrawing.ModelSpace.InsertBlock(insertionPnt, blockName, 1#, 1#, 1#, 0)
+        varAttributes = blockRefObj.GetAttributes
+        For counterAttribs = LBound(varAttributes) To UBound(varAttributes)
+            If varAttributes(counterAttribs).TagString = strAttribute Then
+                varAttributes(counterAttribs).TextString = CStr(counterInsert)
+            End If
+        Next
+        insertionPnt(0) = insertionPnt(0) + horzOffset  '(0) is X coord, (1) is Y coord, (2) is Z coord
+    Next
+End Sub
 
 'Prompts a user for a quantity in positive numbers such as 1, 45, 432
 Function GetQty()
-    Dim qty As Integer
+    Dim qty As Double
     qty = ThisDrawing.Utility.GetInteger(vbCrLf & "Enter number of instances: ")
         If qty >= 1 Then
             GetQty = qty
@@ -37,32 +64,76 @@ Function GetQty()
         End If
 End Function
 
-Sub InsertBlocks(ByVal qty As Integer, ByVal insertionPnt As Variant)
-'/////////////////////////////////////////////////////////////////////
-'SET INPUTS HERE:                                                   '/
-'blockName      - Name of the block you're inserting                '/
-'horzOffset     - Horizontal offset of the insertions               '/
-'strAttribute   - Name of the block attribute you're setting        '/
-                                                                    '/
-    Dim blockName As String:    blockName = "MISC-ELEVATION-PANEL"  '/
-    Dim horzOffset As Double:   horzOffset = 100#   'in millimeters '/
-    Dim strAttribute As String: strAttribute = "PANEL-NO"           '/
-'/////////////////////////////////////////////////////////////////////
+'Prompts a user for a 3 vertice-point by either typing or clicking in model space.
+Function GetInsertionPoint()
+    GetInsertionPoint = ThisDrawing.Utility.GetPoint(, vbCrLf & "Specify insertion point: ")
+End Function
+
+'Draws a border around the blocks
+Sub drawBorder(ByVal qty As Double, ByVal insertionPnt As Variant)
+    'Set CONSTANTS
+    Const BASE_LENGTH As Double = 100
+    Const BASE_WIDTH As Double = 160
+    Const OFFSET As Double = 3
     
-    'This is where each panel gets inserted into the drawing
-    Dim blockRefObj As AcadBlockReference   'holds the actual block in memory
-    Dim varAttributes As Variant            'place to store the attribute list of the block
-    Dim counterInsert As Integer            'counter for the number of instances beng inserted of the block
-    Dim counterAttribs As Integer           'counter for cycling through the block attributes of the block
+    Dim overallLength As Double: overallLength = qty * BASE_LENGTH
+    Dim pLineObj As AcadPolyline
+    Dim points(0 To 11) As Double
     
-    For counterInsert = 1 To qty
-        Set blockRefObj = ThisDrawing.ModelSpace.InsertBlock(insertionPnt, blockName, 1#, 1#, 1#, 0)
-        varAttributes = blockRefObj.GetAttributes
-        For counterAttribs = LBound(varAttributes) To UBound(varAttributes)
-            If varAttributes(counterAttribs).TagString = strAttribute Then
-                varAttributes(counterAttribs).TextString = CStr(counterInsert)
-            End If
-        Next
-        insertionPnt(0) = insertionPnt(0) + horzOffset  '(0) is X coord, (1) is Y coord, (2) is Z coord
+    ' Define the 2D polyline points
+    'x-coord
+    'y-coord
+    'z-coord
+    
+    'Bottom-Left corner
+    points(0) = insertionPnt(0) - OFFSET
+    points(1) = insertionPnt(1) - OFFSET
+    points(2) = 0
+    
+    'Bottom-Right corner
+    points(3) = insertionPnt(0) + overallLength + OFFSET
+    points(4) = insertionPnt(1) - OFFSET
+    points(5) = 0
+    
+    'Top-Right corner
+    points(6) = insertionPnt(0) + overallLength + OFFSET
+    points(7) = insertionPnt(1) + BASE_WIDTH + OFFSET
+    points(8) = 0
+    
+    'Top-Left corner
+    points(9) = insertionPnt(0) - OFFSET
+    points(10) = insertionPnt(1) + BASE_WIDTH + OFFSET
+    points(11) = 0
+    
+    'Draw the lines
+    Set pLineObj = ThisDrawing.ModelSpace.AddPolyline(points)
+    
+    'Set the pline to Closed
+    pLineObj.Closed = True
+End Sub
+
+'Places the vertical and horizontal section lines onto the elevation view
+Sub sectionLines(ByVal qty As Double, ByVal insertionPnt As Variant)
+    'Horizontal Section line right side offset
+    Dim hsLength As Double: hsLength = qty * 100
+    
+    'Define insertion point of the section lines; geometric center of block
+    insertionPnt(0) = insertionPnt(0) + 50  'horizontal offset
+    insertionPnt(1) = insertionPnt(1) + 80  'vertical offset
+    insertionPnt(2) = 0                     'z-coord not relative
+    
+    'Insert the section lines into the drawing
+    Dim blockRefObj As AcadBlockReference
+    Set blockRefObj = ThisDrawing.ModelSpace.InsertBlock(insertionPnt, "MISC-SECTION_LINE-VS", 1#, 1#, 1#, 0#)
+    Set blockRefObj = ThisDrawing.ModelSpace.InsertBlock(insertionPnt, "MISC-SECTION_LINE-HS", 1#, 1#, 1#, 0#)
+    
+    'Set the horizontal section line length
+    Dim dynBlockProp As Variant
+    Dim i As Integer
+    dynBlockProp = blockRefObj.GetDynamicBlockProperties
+    For i = LBound(dynBlockProp) To UBound(dynBlockProp)
+        If dynBlockProp(i).PropertyName = "STRETCH" Then
+            dynBlockProp(i).Value = hsLength
+        End If
     Next
 End Sub
