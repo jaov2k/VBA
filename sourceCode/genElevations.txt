@@ -1,8 +1,7 @@
 'Jose Ortiz
 '2018-04-21
 'Title:         Elevation Section Generator
-'Description:   Module intended to create duplicates of an existing block
-'               used for elevation sections in shop drawings,
+'Description:   Module intended to create duplicates of an existing block,
 '               But can be modified to suit. Not as complicated as using the
 '               the AutoCAD array tool, and can function with block attributes.
 'https://github.com/jaov2k/VBA-AutoCAD/blob/master/sourceCode/genElevations.txt
@@ -22,9 +21,9 @@ Sub InsertBlocks(ByVal qty As Double, ByVal insertionPnt As Variant)
 'horzOffset     - Horizontal offset of the insertions               '/
 'strAttribute   - Name of the block attribute you're setting        '/
                                                                     '/
-    Dim blockName As String:    blockName = "MISC-ELEVATION-PANEL"  '/
-    Dim horzOffset As Double:   horzOffset = 100#   'in millimeters '/
-    Dim strAttribute As String: strAttribute = "PANEL-NO"           '/
+    Dim blockName As String:    blockName = ""                      '/
+    Dim horzOffset As Double:   horzOffset = 000#                   '/
+    Dim strAttribute As String: strAttribute = ""                   '/
 '/////////////////////////////////////////////////////////////////////
     
     'Draw the border before the inserting the blocks
