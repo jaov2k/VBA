@@ -1,2 +1,2 @@
 # VBA
-Modules and stuff to use with AutoCAD
+Solutions written for applications that support VBA
